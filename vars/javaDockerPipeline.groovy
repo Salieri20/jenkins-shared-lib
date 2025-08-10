@@ -1,3 +1,9 @@
+import org.example.CheckoutStage
+import org.example.MavenBuildStage
+import org.example.DockerBuildStage
+import org.example.DockerPushStage
+import org.example.CleanupStage
+
 def call(Map config = [:]) {
     node {
         withCredentials([usernamePassword(
@@ -6,33 +12,11 @@ def call(Map config = [:]) {
             passwordVariable: 'DOCKERHUB_PASS'
         )]) {
 
-            stage('Checkout') {
-                checkout scm
-            }
-
-            def mvnHome = tool name: config.mavenTool ?: 'M3', type: 'hudson.tasks.Maven$MavenInstallation'
-
-            stage('Build (Maven)') {
-                sh "${mvnHome}/bin/mvn -B clean package"
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            }
-
-            stage('Docker Build') {
-                def imgTag = "${DOCKERHUB_USER}/java-app:${env.BUILD_NUMBER}"
-                echo "Building image ${imgTag}"
-                docker.build(imgTag)
-                sh "docker tag ${imgTag} ${DOCKERHUB_USER}/java-app:latest || true"
-            }
-
-            stage('Docker Push') {
-                sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
-                sh "docker push ${DOCKERHUB_USER}/java-app:${env.BUILD_NUMBER}"
-                sh "docker push ${DOCKERHUB_USER}/java-app:latest || true"
-            }
-
-            stage('Cleanup') {
-                sh "docker image prune -f || true"
-            }
+            CheckoutStage.run(this)
+            MavenBuildStage.run(this, config.mavenTool ?: 'M3')
+            DockerBuildStage.run(this, env.DOCKERHUB_USER)
+            DockerPushStage.run(this, env.DOCKERHUB_USER, env.DOCKERHUB_PASS)
+            CleanupStage.run(this)
         }
     }
 }
