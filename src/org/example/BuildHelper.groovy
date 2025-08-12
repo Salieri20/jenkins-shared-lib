@@ -38,6 +38,19 @@ class BuildHelper implements Serializable {
             dockerImage.push('latest')
         }
     }
+    void updateDeploymentManifest(String manifestPath, String imageName, String tag) {
+        script.echo "Updating Kubernetes manifest: ${manifestPath} with image ${imageName}:${tag}"
+
+        script.sh """
+            sed -i "s|image: .*|image: ${imageName}:${tag}|" ${manifestPath}
+
+            git config user.email "jenkins@example.com"
+            git config user.name "Jenkins CI"
+            git add ${manifestPath}
+            git commit -m "Update image to ${imageName}:${tag} [ci skip]" || echo "No changes to commit"
+            git push origin HEAD:main
+        """
+    }
 
     
     void cleanupDocker() {
