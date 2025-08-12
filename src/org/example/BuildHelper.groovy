@@ -49,7 +49,7 @@ class BuildHelper implements Serializable {
             git remote set-url origin https://${script.env.GITHUB_CREDS_USR}:${script.env.GITHUB_CREDS_PSW}@github.com/Salieri20/java-app.git
             git add ${manifestPath}
             git commit -m "Update image to ${imageName}:${tag} [ci skip]" || echo "No changes to commit"
-            git push origin HEAD:main
+            git push origin HEAD:master 
         """
     }
 
