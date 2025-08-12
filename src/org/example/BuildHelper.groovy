@@ -46,7 +46,7 @@ class BuildHelper implements Serializable {
 
             git config user.email "jenkins@example.com"
             git config user.name "Jenkins CI"
-            git remote set-url origin https://${GITHUB_CREDS_USR}:${GITHUB_CREDS_PSW}@github.com/Salieri20/java-app.git
+            git remote set-url origin https://${script.env.GITHUB_CREDS_USR}:${script.env.GITHUB_CREDS_PSW}@github.com/Salieri20/java-app.git
             git add ${manifestPath}
             git commit -m "Update image to ${imageName}:${tag} [ci skip]" || echo "No changes to commit"
             git push origin HEAD:main
